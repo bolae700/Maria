@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Maria | Royal Visionary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #ffd700;
+            --gold-soft: #ffeb3b;
+            --gold-glow: rgba(255, 215, 0, 0.2);
+            --bg: #030303;
+            --surface: rgba(15, 15, 15, 0.6);
+            --border: rgba(255, 215, 0, 0.12);
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #fff;
+            font-family: 'Alexandria', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: -0.01em;
+        }
+
+        /* Royal Environment */
+        .stars-container {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #0a0a0a 0%, #000 100%);
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0.2;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.2); }
+        }
+
+        .glass-card {
+            background: var(--surface);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+
+        /* Professional Animations */
+        @keyframes slide-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes vinyl { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .anim-up { animation: slide-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .anim-orbit { animation: orbit 22s linear infinite; }
+        .anim-vinyl { animation: vinyl 10s linear infinite; }
+
+        .gold-shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gold-shimmer::after {
+            content: '';
+            position: absolute;
+            top: -100%; left: -100%;
+            width: 50%; height: 300%;
+            background: linear-gradient(to right, transparent, rgba(255,215,0,0.1), transparent);
+            transform: rotate(35deg);
+            animation: shimmer 6s infinite;
+        }
+
+        @keyframes shimmer { 0% { left: -150%; } 20% { left: 200%; } 100% { left: 200%; } }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+        .btn-casual {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .btn-casual:hover { transform: scale(1.05); filter: brightness(1.2); }
+        .btn-casual:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="module">
+        import React, { useState, useEffect, useRef, useMemo } from 'https://esm.sh/react@18.2.0';
+        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+
+        const Icon = ({ name, className = "w-4 h-4" }) => {
+            const icons = {
+                music: `<path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />`,
+                play: `<path d="m7 4 12 8-12 8V4z" fill="currentColor" />`,
+                pause: `<rect x="6" y="4" width="4" height="16" fill="currentColor" /><rect x="14" y="4" width="4" height="16" fill="currentColor" />`,
+                x: `<path d="M18 6 6 18M6 6l12 12" />`,
+                'skip-back': `<path d="M7 19V5M21 19l-9-7 9-7v14z" fill="currentColor" />`,
+                'skip-forward': `<path d="M17 5v14M3 5l9 7-9 7V5z" fill="currentColor" />`,
+            };
+
+            return React.createElement('svg', {
+                xmlns: "http://www.w3.org/2000/svg",
+                viewBox: "0 0 24 24",
+                fill: "none",
+                stroke: "currentColor",
+                strokeWidth: "1.8",
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+                className: className,
+                dangerouslySetInnerHTML: { __html: icons[name] || '' }
+            });
+        };
+
+        const App = () => {
+            const [tab, setTab] = useState('home');
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [isExpanded, setIsExpanded] = useState(false);
+            const [progress, setProgress] = useState(0);
+            const audioRef = useRef(null);
+
+            const MEMBERS = [
+                { name: "Atlas", img: "https://i.pravatar.cc/150?u=1" },
+                { name: "Nova", img: "https://i.pravatar.cc/150?u=2" },
+                { name: "Luna", img: "https://i.pravatar.cc/150?u=3" },
+                { name: "Zen", img: "https://i.pravatar.cc/150?u=4" },
+                { name: "Lyra", img: "https://i.pravatar.cc/150?u=5" },
+                { name: "Sol", img: "https://i.pravatar.cc/150?u=6" },
+                { name: "Echo", img: "https://i.pravatar.cc/150?u=7" },
+                { name: "Node", img: "https://i.pravatar.cc/150?u=8" },
+            ];
+
+            const PROJECTS = [
+                { title: "Gold OS", cat: "Next Gen UI", img: "https://picsum.photos/id/26/600/800", desc: "Minimalist workspace architecture." },
+                { title: "Aura 2.0", cat: "Interface", img: "https://picsum.photos/id/49/600/800", desc: "Luxury visualization engine." }
+            ];
+
+            const stars = useMemo(() => Array.from({ length: 60 }).map((_, i) => ({
+                id: i, size: Math.random() * 1.5, top: Math.random() * 100, left: Math.random() * 100, dur: Math.random() * 3 + 2
+            })), []);
+
+            const togglePlay = (e) => {
+                e.stopPropagation();
+                if (!audioRef.current) return;
+                if (audioRef.current.paused) audioRef.current.play();
+                else audioRef.current.pause();
+                setIsPlaying(!audioRef.current.paused);
+            };
+
+            return React.createElement('div', { className: "min-h-screen relative overflow-hidden" },
+                React.createElement('div', { className: "stars-container" },
+                    stars.map(s => React.createElement('div', {
+                        key: s.id, className: "star", style: { width: s.size, height: s.size, top: `${s.top}%`, left: `${s.left}%`, '--duration': `${s.dur}s` }
+                    }))
+                ),
+
+                React.createElement('audio', {
+                    ref: audioRef,
+                    src: "https://audio.jukehost.co.uk/NuLgFpCxa1HTsUQUUVhWtBDQJ76xsQwz",
+                    onTimeUpdate: (e) => setProgress((e.target.currentTime / e.target.duration) * 100)
+                }),
+
+                React.createElement('nav', { className: "fixed top-8 left-1/2 -translate-x-1/2 z-[100] px-4" },
+                    React.createElement('div', { className: "glass-card px-1.5 py-1.5 rounded-full flex gap-1 bg-black/40" },
+                        ['home', 'artifacts'].map(t => React.createElement('button', {
+                            key: t,
+                            onClick: () => setTab(t),
+                            className: `px-7 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-500 ${tab === t ? 'bg-[--gold] text-black shadow-lg shadow-yellow-500/20' : 'text-zinc-500 hover:text-zinc-300'}`
+                        }, t))
+                    )
+                ),
+
+                React.createElement('main', { className: "max-w-3xl mx-auto px-6 pt-36 pb-32" },
+                    tab === 'home' ? React.createElement('div', { className: "anim-up" },
+                        React.createElement('div', { className: "text-center mb-16" },
+                            React.createElement('div', { className: "relative w-36 h-36 sm:w-44 sm:h-44 mx-auto mb-10 group" },
+                                React.createElement('div', { 
+                                    className: "absolute inset-[-12px] border-[1px] border-transparent rounded-full anim-orbit bg-gradient-to-r from-[--gold] via-transparent to-[--gold-soft]",
+                                    style: { WebkitMaskImage: 'linear-gradient(#fff, #fff) padding-box, linear-gradient(#fff, #fff)', WebkitMaskComposite: 'xor', maskComposite: 'exclude' }
+                                }),
+                                React.createElement('div', { className: "relative w-full h-full rounded-full bg-black p-1 overflow-hidden gold-shimmer shadow-2xl border border-white/5" },
+                                    React.createElement('img', { src: "https://picsum.photos/id/64/600/600", className: "w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" })
+                                ),
+                                React.createElement('div', { className: "absolute -bottom-3 left-1/2 -translate-x-1/2 glass-card px-3.5 py-1.5 rounded-full border border-[--gold]/20 flex items-center gap-2" },
+                                    React.createElement('div', { className: "w-1 h-1 bg-[--gold] rounded-full animate-pulse" }),
+                                    React.createElement('span', { className: "text-[8px] font-black uppercase tracking-[0.2em] text-zinc-300" }, "Verified")
+                                )
+                            ),
+                            React.createElement('h1', { className: "text-6xl sm:text-8xl font-black mb-3 font-['Playfair_Display'] tracking-tighter" }, "Maria"),
+                            React.createElement('p', { className: "text-zinc-600 text-[9px] font-bold uppercase tracking-[0.5em] opacity-80" }, "Visionary Artisan")
+                        ),
+
+                        React.createElement('div', { className: "glass-card p-8 sm:p-10" },
+                            React.createElement('div', { className: "flex items-center gap-4 mb-8" },
+                                React.createElement('h2', { className: "text-[9px] font-black uppercase tracking-[0.3em] text-[--gold] whitespace-nowrap" }, "The Core"),
+                                React.createElement('div', { className: "h-px w-full bg-gradient-to-r from-[--gold]/20 to-transparent" })
+                            ),
+                            React.createElement('div', { className: "grid grid-cols-4 sm:grid-cols-8 gap-4 sm:gap-6" },
+                                MEMBERS.map((m, i) => React.createElement('div', { key: i, className: "group flex flex-col items-center gap-2.5 cursor-pointer btn-casual" },
+                                    React.createElement('div', { className: "w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-zinc-900 border border-white/5 p-0.5 group-hover:border-[--gold]/50 transition-colors duration-500" },
+                                        React.createElement('img', { src: m.img, className: "w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0" })
+                                    ),
+                                    React.createElement('span', { className: "text-[7px] font-bold uppercase tracking-widest text-zinc-700 group-hover:text-zinc-300" }, m.name)
+                                ))
+                            )
+                        )
+                    ) : React.createElement('div', { className: "anim-up" },
+                        React.createElement('div', { className: "text-center mb-16" },
+                            React.createElement('h2', { className: "text-5xl sm:text-6xl font-black font-['Playfair_Display'] mb-2 tracking-tight" }, "Artifacts"),
+                            React.createElement('p', { className: "text-zinc-600 text-[8px] uppercase tracking-[0.6em] font-bold" }, "Digital Craft")
+                        ),
+                        React.createElement('div', { className: "grid grid-cols-1 sm:grid-cols-2 gap-8" },
+                            PROJECTS.map((p, i) => React.createElement('div', { key: i, className: "group relative aspect-[3/4] rounded-[40px] overflow-hidden border border-white/5 bg-zinc-900 btn-casual" },
+                                React.createElement('img', { src: p.img, className: "w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105" }),
+                                React.createElement('div', { className: "absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent p-10 flex flex-col justify-end" },
+                                    React.createElement('span', { className: "text-[9px] font-black text-[--gold] uppercase tracking-[0.4em] mb-2" }, p.cat),
+                                    React.createElement('h3', { className: "text-3xl font-bold mb-2 tracking-tight" }, p.title),
+                                    React.createElement('p', { className: "text-[10px] text-zinc-400 font-light max-w-xs" }, p.desc)
+                                )
+                            ))
+                        )
+                    )
+                ),
+
+                // Sonic Pill (Dynamic Island Style)
+                React.createElement('div', {
+                    onClick: () => !isExpanded && setIsExpanded(true),
+                    className: `fixed bottom-8 left-8 z-[150] transition-all duration-700 glass-card overflow-hidden ${isExpanded ? 'w-64 h-[340px] rounded-[48px] p-8 shadow-2xl' : 'w-14 h-14 rounded-full flex items-center justify-center cursor-pointer hover:border-[--gold]/50'}`
+                },
+                    !isExpanded ? React.createElement(Icon, { name: "music", className: `w-5 h-5 text-[--gold] ${isPlaying ? 'animate-pulse' : ''}` }) :
+                    React.createElement('div', { className: "flex flex-col h-full anim-up" },
+                        React.createElement('div', { className: "flex justify-between items-center mb-8" },
+                            React.createElement('span', { className: "text-[8px] font-black tracking-[0.4em] text-zinc-600 uppercase" }, "Sonic"),
+                            React.createElement('button', { onClick: (e) => { e.stopPropagation(); setIsExpanded(false); }, className: "hover:rotate-90 transition-transform duration-500" },
+                                React.createElement(Icon, { name: "x", className: "w-4 h-4 text-zinc-600 hover:text-white" })
+                            )
+                        ),
+                        React.createElement('div', { className: "flex-1 flex flex-col items-center justify-center" },
+                            // FIXED DISK CONTAINER: Shadow and border remain static while inner part rotates
+                            React.createElement('div', { className: "w-24 h-24 rounded-full bg-black border-[6px] border-black shadow-[0_15px_35px_rgba(0,0,0,0.8)] mb-6 relative flex items-center justify-center overflow-hidden" },
+                                React.createElement('div', { className: `absolute inset-0 bg-zinc-900 rounded-full ${isPlaying ? 'anim-vinyl' : ''}` },
+                                    React.createElement('div', { className: "absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_40%,_rgba(255,215,0,0.08)_100%)]" }),
+                                    // Visual Vinyl Grooves
+                                    React.createElement('div', { className: "absolute inset-1 border border-white/5 rounded-full" }),
+                                    React.createElement('div', { className: "absolute inset-3 border border-white/5 rounded-full" }),
+                                    React.createElement('div', { className: "absolute inset-5 border border-white/5 rounded-full" })
+                                ),
+                                // Static Center Pin
+                                React.createElement('div', { className: "w-8 h-8 rounded-full bg-zinc-800 border border-white/10 z-10 shadow-inner flex items-center justify-center" },
+                                    React.createElement('div', { className: "w-1.5 h-1.5 bg-zinc-600 rounded-full" })
+                                )
+                            ),
+                            React.createElement('h4', { className: "text-sm font-bold tracking-tight mb-0.5" }, "Royal Echo"),
+                            React.createElement('p', { className: "text-[8px] text-[--gold]/60 uppercase tracking-[0.3em] font-black" }, "Aura V.1")
+                        ),
+                        React.createElement('div', { className: "mt-8" },
+                            React.createElement('div', { className: "flex items-center justify-center gap-6 mb-6" },
+                                React.createElement(Icon, { name: "skip-back", className: "w-4 h-4 text-zinc-800" }),
+                                React.createElement('button', { onClick: togglePlay, className: "w-11 h-11 bg-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl" },
+                                    React.createElement(Icon, { name: isPlaying ? 'pause' : 'play', className: "w-5 h-5 text-black" })
+                                ),
+                                React.createElement(Icon, { name: "skip-forward", className: "w-4 h-4 text-zinc-800" })
+                            ),
+                            React.createElement('div', { className: "h-1 bg-zinc-900 rounded-full overflow-hidden" },
+                                React.createElement('div', { className: "h-full bg-[--gold] shadow-[0_0_10px_var(--gold)] transition-all", style: { width: `${progress}%` } })
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>
